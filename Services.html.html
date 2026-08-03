@@ -1,0 +1,108 @@
+<div class="page">
+
+    <div class="page-header">
+
+        <div>
+<h2>🛠 الصيانة</h2>
+<p>إدارة جميع أعمال الصيانة</p>    
+    </div>
+
+        <button class="add-btn" onclick="showAddService()">
+            ➕ صيانة جديدة
+        </button>
+
+    </div>
+
+    <div class="stats-row">
+
+        <div class="stat-card blue">
+            <div class="stat-number" id="totalServicesCount">0</div>
+            <div class="stat-title">إجمالي الصيانات</div>
+        </div>
+
+        <div class="stat-card orange">
+            <div class="stat-number" id="openServicesCount">0</div>
+            <div class="stat-title">صيانات مفتوحة </div>
+        </div>
+
+        <div class="stat-card green">
+            <div class="stat-number" id="completedServicesCount">0</div>
+            <div class="stat-title">تم التنفيذ</div>
+        </div>
+
+        <div class="stat-card red">
+            <div class="stat-number" id="cancelledServicesCount">0</div>
+            <div class="stat-title">ملغية</div>
+        </div>
+
+    </div>
+
+    <div class="dashboard-section">
+
+        <div class="table-toolbar">
+
+            <input
+                id="serviceSearch"
+                class="search-input"
+                type="text"
+                placeholder="🔍 ابحث باسم العميل أو رقم الهاتف..."
+                onkeyup="searchServices()">
+
+            <select id="statusFilter">
+                <option value="">كل الحالات</option>
+                <option>جديد</option>
+                <option>جارى التنفيذ</option>
+                <option>مكتمل</option>
+                <option>ملغي</option>
+            </select>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+                        <th>اسم العميل</th>
+                        <th>الهاتف</th>
+                        <th>المطبخ</th>
+                        <th>المهندس</th>
+                        <th>تاريخ الزيارة</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="servicesTable">
+
+                    <tr>
+
+                        <td colspan="8" style="text-align:center;padding:40px">
+
+                            جارٍ تحميل البيانات...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+loadServices();
+
+</script>

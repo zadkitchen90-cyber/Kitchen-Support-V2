@@ -1,0 +1,47 @@
+<div class="page">
+
+    <div class="page-header">
+
+        <div>
+            <h2>➕ إضافة عميل جديد</h2>
+            <p>إدخال بيانات العميل</p>
+        </div>
+
+        <button class="back-btn" onclick="loadPage('Customers')">
+            ⬅ رجوع
+        </button>
+
+    </div>
+
+    <div class="dashboard-section">
+
+        <div class="form-grid">
+
+            <input id="customerName" placeholder="اسم العميل">
+
+            <input id="customerPhone" placeholder="رقم الهاتف">
+
+            <input id="customerPhone2" placeholder="رقم هاتف آخر">
+
+            <input id="customerGovernorate" placeholder="المحافظة">
+
+            <input id="customerCity" placeholder="المكان">
+
+            <input id="customerAddress" placeholder="العنوان">
+
+            <textarea
+                id="customerNotes"
+                placeholder="ملاحظات"
+                rows="4"></textarea>
+
+        </div>
+
+        <br>
+
+        <button class="add-btn" onclick="saveNewCustomer()">
+            💾 حفظ العميل
+        </button>
+
+    </div>
+
+</div>

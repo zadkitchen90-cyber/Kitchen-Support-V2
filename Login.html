@@ -1,0 +1,70 @@
+<div class="login-card">
+
+    <div class="logo">
+        Z
+    </div>
+
+    <h1 class="login-title">
+        ZAD Kitchen
+    </h1>
+
+    <div class="login-sub">
+        Kitchen Support Management System
+    </div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+
+        <div class="form-group">
+
+            <label>
+                اسم المستخدم
+            </label>
+
+            <div class="input-group">
+
+                <input
+                    id="username"
+                    type="text"
+                    placeholder="ادخل اسم المستخدم"
+                    autocomplete="username"
+                    required>
+
+            </div>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                كلمة المرور
+            </label>
+
+            <div class="input-group">
+
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="ادخل كلمة المرور"
+                    autocomplete="current-password"
+                    required>
+
+            </div>
+
+        </div>
+
+        <button
+            id="submitBtn"
+            class="login-btn"
+            type="submit">
+
+            تسجيل الدخول
+
+        </button>
+
+        <div id="errorMsg"></div>
+
+    </form>
+
+</div>
+
+<div class="toast" id="toast"></div>

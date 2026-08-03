@@ -1,0 +1,74 @@
+<div class="page">
+
+    <div class="page-header">
+
+        <div>
+            <h2>👥 العملاء</h2>
+            <p>إدارة جميع العملاء</p>
+        </div>
+
+        <button class="add-btn" onclick="showAddCustomer()">
+            ➕ عميل جديد
+        </button>
+
+    </div>
+
+    <div class="dashboard-section">
+
+        <div class="table-toolbar">
+
+            <input
+                id="customerSearch"
+                class="search-input"
+                type="text"
+                placeholder="🔍 ابحث باسم العميل أو رقم الهاتف..."
+                onkeyup="searchCustomers()">
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+                        <th>اسم العميل</th>
+                        <th>الهاتف</th>
+                        <th>المحافظة</th>
+                        <th>المدينة</th>
+                        <th>الإجراءات</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="customersTable">
+
+                    <tr>
+
+                        <td colspan="6" style="text-align:center;padding:40px">
+
+                            جارٍ تحميل العملاء...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+loadCustomers();
+
+</script>

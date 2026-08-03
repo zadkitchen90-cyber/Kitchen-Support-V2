@@ -1,0 +1,97 @@
+<div class="page">
+
+    <div class="page-header">
+        <div>
+            <h2>صيانه جديده</h2>
+            <p style="color:#777;margin-top:5px;">
+                تسجيل بلاغ صيانة جديد
+            </p>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>اسم العميل</label>
+                <input id="customerName" type="text" placeholder="اكتب اسم العميل">
+            </div>
+
+            <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input id="customerPhone" type="text" placeholder="01xxxxxxxxx">
+            </div>
+
+            <div class="form-group">
+                <label>نوع المطبخ</label>
+                <select id="deviceType"></select>
+            </div>
+
+            <div class="form-group">
+                <label>نوع المشكلة</label>
+                <select id="brand"></select>
+            </div>
+
+            <div class="form-group">
+                <label>المهندس</label>
+                <select id="engineer"></select>
+            </div>
+
+            <div class="form-group">
+                <label>تاريخ الزيارة</label>
+                <input id="visitDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label>الحالة</label>
+                <select id="status">
+                    <option value="جديد">جديد</option>
+                    <option value="جارى التنفيذ">جارى التنفيذ</option>
+                    <option value="مكتمل">مكتمل</option>
+                    <option value="ملغي">ملغي</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>وصف المشكلة</label>
+
+            <textarea
+                id="problem"
+                placeholder="اكتب تفاصيل المشكلة..."
+                rows="5"></textarea>
+
+        </div>
+
+        <div style="display:flex;gap:15px;margin-top:30px;">
+
+            <button
+                class="add-btn"
+                onclick="saveService()">
+
+                💾 حفظ الصيانه
+
+            </button>
+
+            <button
+                class="gray-btn add-btn"
+                onclick="loadPage('Services')">
+
+                ↩ رجوع
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+loadAddServiceLists();
+
+</script>

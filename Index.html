@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen Support V2</title>
+  <?!= include('CSS'); ?>
+</head>
+<body>
+
+  <div id="loginScreen">
+    <?!= include('Login'); ?>
+  </div>
+
+  <div id="systemScreen" style="display:none;">
+    <?!= include('Header'); ?>
+
+    <div class="content">
+      <?!= include('Sidebar'); ?>
+
+      <div class="main" id="mainContent">
+        <?!= include('Dashboard'); ?>
+      </div>
+    </div>
+
+    <?!= include('Footer'); ?>
+  </div>
+
+  <?!= include('JS'); ?>
+
+</body>
+</html>

@@ -1,0 +1,597 @@
+<script>
+
+function handleLogin(e){
+
+    if(e)e.preventDefault();
+
+    const user=document.getElementById("username").value.trim();
+
+    const pass=document.getElementById("password").value.trim();
+
+    const btn=document.getElementById("submitBtn");
+
+    const error=document.getElementById("errorMsg");
+
+    btn.disabled=true;
+
+    btn.innerHTML="جارى تسجيل الدخول...";
+
+    error.style.display="none";
+
+    google.script.run
+
+    .withSuccessHandler(function(res){
+
+        if(res.success){
+
+            document.getElementById("loginScreen").style.display="none";
+
+            document.getElementById("systemScreen").style.display="block";
+
+            loadDashboard();
+
+        }else{
+
+            btn.disabled=false;
+
+            btn.innerHTML="تسجيل الدخول";
+
+            error.style.display="block";
+
+            error.innerHTML=res.message;
+
+        }
+
+    })
+
+    .withFailureHandler(function(err){
+
+        btn.disabled=false;
+
+        btn.innerHTML="تسجيل الدخول";
+
+        error.style.display="block";
+
+        error.innerHTML=err.message;
+
+    })
+
+    .login(user,pass);
+
+}
+
+
+
+function loadDashboard(){
+
+    updateDateTime();
+
+    setInterval(updateDateTime,1000);
+
+    google.script.run
+
+    .withSuccessHandler(function(user){
+
+        if(user){
+
+            document.getElementById("userName").innerHTML=
+
+            user.name+" | "+user.role;
+
+        }
+
+    })
+
+    .getCurrentUser();
+
+
+
+    google.script.run
+
+    .withSuccessHandler(function(data){
+
+        document.getElementById("totalServices").innerHTML=data.totalServices;
+
+        document.getElementById("openServices").innerHTML=data.openServices;
+
+        document.getElementById("engineersCount").innerHTML=data.engineersCount;
+
+        if(document.getElementById("completedServices")){
+
+            document.getElementById("completedServices").innerHTML=data.completedServices||0;
+
+        }
+
+    })
+
+    .getDashboardData();
+
+}
+
+
+
+function updateDateTime(){
+
+    const now=new Date();
+
+    const options={
+
+        weekday:'long',
+
+        year:'numeric',
+
+        month:'long',
+
+        day:'numeric',
+
+        hour:'2-digit',
+
+        minute:'2-digit',
+
+        second:'2-digit'
+
+    };
+
+    if(document.getElementById("currentDateTime")){
+
+        document.getElementById("currentDateTime").innerHTML=
+
+        now.toLocaleString("ar-EG",options);
+
+    }
+
+}
+
+
+
+function loadPage(pageName){
+
+    // لو صفحة إضافة عميل افتحها مباشرة
+    google.script.run
+    .withSuccessHandler(function(html){
+
+        document.getElementById("mainContent").innerHTML = html;
+
+        if(pageName=="AddService"){
+            setTimeout(loadAddServiceLists,200);
+        }
+
+        if(pageName=="Services"){
+            setTimeout(loadServices,200);
+        }
+
+        if(pageName=="Customers"){
+            setTimeout(loadCustomers,200);
+        }
+
+    })
+    .withFailureHandler(function(err){
+        alert(err.message);
+    })
+    .loadPage(pageName);
+
+}
+
+function loadServices(){
+
+    google.script.run
+    .withSuccessHandler(function(data){
+
+        const tbody = document.getElementById("servicesTable");
+        if(!tbody) return;
+
+        tbody.innerHTML="";
+
+        if(data.length==0){
+
+            tbody.innerHTML=`
+            <tr>
+                <td colspan="8" style="text-align:center;padding:40px">
+                    لا توجد بلاغات
+                </td>
+            </tr>`;
+
+            return;
+        }
+
+        let open=0;
+        let done=0;
+        let cancel=0;
+
+        data.forEach(function(item,index){
+
+            let badge="badge-open";
+
+            if(item.status=="جارى التنفيذ"){
+                badge="badge-progress";
+                open++;
+            }
+
+            if(item.status=="جديد"){
+                badge="badge-open";
+                open++;
+            }
+
+            if(item.status=="مكتمل"){
+                badge="badge-done";
+                done++;
+            }
+
+            if(item.status=="ملغي"){
+                badge="badge-cancel";
+                cancel++;
+            }
+
+            tbody.innerHTML+=`
+
+            <tr>
+
+                <td>${index+1}</td>
+
+                <td>${item.customerName}</td>
+
+                <td>---</td>
+
+                <td>${item.deviceType}</td>
+
+                <td>${item.engineer}</td>
+
+                <td>${item.visitDate}</td>
+
+                <td>
+                    <span class="badge ${badge}">
+                        ${item.status}
+                    </span>
+                </td>
+
+                <td>
+                    <button class="gold-btn">
+                        👁 عرض
+                    </button>
+                </td>
+
+            </tr>
+
+            `;
+
+        });
+
+        document.getElementById("totalServicesCount").innerHTML=data.length;
+        document.getElementById("openServicesCount").innerHTML=open;
+        document.getElementById("completedServicesCount").innerHTML=done;
+        document.getElementById("cancelledServicesCount").innerHTML=cancel;
+
+    })
+    .getServices();
+
+}
+
+function saveService(){
+
+    const service={
+
+        customerName:document.getElementById("customerName").value.trim(),
+
+        customerPhone:document.getElementById("customerPhone").value.trim(),
+
+        deviceType:document.getElementById("deviceType").value,
+
+        brand:document.getElementById("brand").value,
+
+        problem:document.getElementById("problem").value.trim(),
+
+        engineer:document.getElementById("engineer").value,
+
+        visitDate:document.getElementById("visitDate").value,
+
+        status:document.getElementById("status").value
+
+    };
+
+    if(service.customerName==""){
+
+        alert("اكتب اسم العميل");
+
+        return;
+
+    }
+
+    if(service.customerPhone==""){
+
+        alert("اكتب رقم الهاتف");
+
+        return;
+
+    }
+
+    if(service.visitDate==""){
+
+        alert("اختر تاريخ الزيارة");
+
+        return;
+
+    }
+
+    google.script.run
+
+    .withSuccessHandler(function(res){
+
+        if(res.success){
+
+            showToast(res.message);
+
+            setTimeout(function(){
+
+                loadPage("Services");
+
+            },1000);
+
+        }else{
+
+            alert(res.message);
+
+        }
+
+    })
+
+    .withFailureHandler(function(err){
+
+        alert(err.message);
+
+    })
+
+    .saveService(service);
+
+}
+
+
+function searchServices(){
+
+    const input=document.getElementById("serviceSearch");
+
+    if(!input) return;
+
+    const filter=input.value.toLowerCase();
+
+    const rows=document.querySelectorAll("#servicesTable tr");
+
+    rows.forEach(function(row){
+
+        if(row.innerText.toLowerCase().indexOf(filter)>-1){
+
+            row.style.display="";
+
+        }else{
+
+            row.style.display="none";
+
+        }
+
+    });
+
+}
+
+
+
+function logoutUser(){
+
+    if(confirm("هل تريد تسجيل الخروج؟")){
+
+        location.reload();
+
+    }
+
+}
+
+
+
+function showToast(message){
+
+    let toast=document.getElementById("toast");
+
+    if(!toast){
+
+        toast=document.createElement("div");
+
+        toast.id="toast";
+
+        toast.className="toast";
+
+        document.body.appendChild(toast);
+
+    }
+
+    toast.innerHTML=message;
+
+    toast.style.display="block";
+
+    setTimeout(function(){
+
+        toast.style.display="none";
+
+    },3000);
+
+}
+function loadAddServiceLists(){
+
+    google.script.run.withSuccessHandler(function(list){
+
+        fillSelect("engineer",list);
+
+    }).getList("Engineer");
+
+
+    google.script.run.withSuccessHandler(function(list){
+
+        fillSelect("deviceType",list);
+
+    }).getList("Kitchen");
+
+
+    google.script.run.withSuccessHandler(function(list){
+
+        fillSelect("brand",list);
+
+    }).getList("Problem");
+
+}
+
+function fillSelect(id,data){
+
+    const select=document.getElementById(id);
+
+    if(!select) return;
+
+    select.innerHTML='<option value="">اختر...</option>';
+
+    data.forEach(function(item){
+
+        select.innerHTML+=`<option value="${item}">${item}</option>`;
+
+    });
+
+}
+function showAddService(){
+    loadPage("AddService");
+}
+
+function showDashboard(){
+    loadPage("Dashboard");
+}
+//=========================
+// العملاء
+//=========================
+
+function loadCustomers(){
+
+    google.script.run
+
+    .withSuccessHandler(function(data){
+
+        console.log("Customers:", data);
+
+        const tbody = document.getElementById("customersTable");
+
+        if(!tbody) return;
+
+        tbody.innerHTML = "";
+
+        if(!data || data.length == 0){
+
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center;padding:40px">
+                    لا يوجد عملاء
+                </td>
+            </tr>`;
+
+            return;
+        }
+
+        data.forEach(function(item,index){
+
+            tbody.innerHTML += `
+            <tr>
+                <td>${index+1}</td>
+                <td>${item.name}</td>
+                <td>${item.phone}</td>
+                <td>${item.governorate}</td>
+                <td>${item.city}</td>
+                <td><button class="gold-btn">✏️ تعديل</button></td>
+            </tr>`;
+        });
+
+    })
+
+    .withFailureHandler(function(err){
+
+        console.log(err);
+
+        alert(err.message);
+
+    })
+
+    .getCustomers();
+
+}
+
+function searchCustomers(){
+
+    const input=document.getElementById("customerSearch");
+
+    if(!input) return;
+
+    const filter=input.value.toLowerCase();
+
+    const rows=document.querySelectorAll("#customersTable tr");
+
+    rows.forEach(function(row){
+
+        if(row.innerText.toLowerCase().indexOf(filter)>-1){
+
+            row.style.display="";
+
+        }else{
+
+            row.style.display="none";
+
+        }
+
+    });
+
+}
+
+
+function showAddCustomer() {
+    loadPage("AddCustomer");
+}
+
+function setActiveMenu(btn){
+
+    document.querySelectorAll(".menu-btn").forEach(item=>{
+        item.classList.remove("active");
+    });
+
+    btn.classList.add("active");
+
+}
+
+function saveNewCustomer(){
+
+    let customer={
+
+        name:document.getElementById("customerName").value,
+        phone:document.getElementById("customerPhone").value,
+        phone2:document.getElementById("customerPhone2").value,
+        governorate:document.getElementById("customerGovernorate").value,
+        city:document.getElementById("customerCity").value,
+        address:document.getElementById("customerAddress").value,
+        notes:document.getElementById("customerNotes").value
+
+    };
+
+    if(customer.name==""){
+
+        alert("اكتب اسم العميل");
+
+        return;
+
+    }
+
+    google.script.run
+    .withSuccessHandler(function(res){
+
+        alert(res.message);
+
+        loadPage("Customers");
+
+    })
+    .withFailureHandler(function(err){
+
+        alert(err.message);
+
+    })
+    .saveCustomer(customer);
+
+}
+</script>
