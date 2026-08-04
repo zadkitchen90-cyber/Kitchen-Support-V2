@@ -39,25 +39,43 @@
 
     <div class="dashboard-section">
 
-        <div class="table-toolbar">
+<div class="table-toolbar">
 
-            <input
-                id="serviceSearch"
-                class="search-input"
-                type="text"
-                placeholder="🔍 ابحث باسم العميل أو رقم الهاتف..."
-                onkeyup="searchServices()">
+    <div class="toolbar-left">
 
-            <select id="statusFilter">
-                <option value="">كل الحالات</option>
-                <option>جديد</option>
-                <option>جارى التنفيذ</option>
-                <option>مكتمل</option>
-                <option>ملغي</option>
-            </select>
+        <input
+            id="serviceSearch"
+            class="search-input"
+            type="text"
+            placeholder="🔍 ابحث باسم العميل أو الهاتف أو المطبخ..."
+            onkeyup="searchServices()">
 
-        </div>
+    </div>
 
+    <div class="toolbar-right">
+
+        <select id="statusFilter" onchange="searchServices()">
+            <option value="">📋 كل الحالات</option>
+            <option value="جديد">🟡 جديد</option>
+            <option value="جارى التنفيذ">🟠 جاري التنفيذ</option>
+            <option value="مكتمل">🟢 مكتمل</option>
+            <option value="ملغي">🔴 ملغي</option>
+        </select>
+
+        <select id="priorityFilter" onchange="searchServices()">
+            <option value="">⚡ كل الأولويات</option>
+            <option value="عاجلة">🔴 عاجلة</option>
+            <option value="متوسطة">🟠 متوسطة</option>
+            <option value="عادية">🟢 عادية</option>
+        </select>
+
+        <button class="refresh-btn" onclick="loadServices()">
+            🔄 تحديث
+        </button>
+
+    </div>
+
+</div>
         <div class="table-responsive">
 
             <table>

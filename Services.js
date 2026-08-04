@@ -21,7 +21,12 @@ function getServices() {
   // CustomerID => Name
   let customerMap = {};
   for (let i = 1; i < customers.length; i++) {
-    customerMap[customers[i][0]] = customers[i][1];
+    customerMap[customers[i][0]] = {
+  name: customers[i][1],
+  phone: customers[i][2],
+  governorate: customers[i][4],
+  city: customers[i][5]
+};
   }
 
   // EngineerID => Name
@@ -42,7 +47,21 @@ function getServices() {
 
       createDate: services[i][2],
 
-      customerName: customerMap[services[i][3]] || services[i][3],
+      customerName: customerMap[services[i][3]]
+    ? customerMap[services[i][3]].name
+    : "",
+
+customerPhone: customerMap[services[i][3]]
+    ? customerMap[services[i][3]].phone
+    : "",
+
+governorate: customerMap[services[i][3]]
+    ? customerMap[services[i][3]].governorate
+    : "",
+
+city: customerMap[services[i][3]]
+    ? customerMap[services[i][3]].city
+    : "",
 
       engineer: engineerMap[services[i][4]] || services[i][4],
 

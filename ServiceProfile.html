@@ -1,9 +1,137 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-  </head>
-  <body>
-    
-  </body>
-</html>
+<div class="page">
+
+    <div class="page-header">
+
+        <div>
+
+            <h2>🛠 تفاصيل الصيانة</h2>
+
+            <p id="serviceNumber">
+                ...
+            </p>
+
+        </div>
+
+        <button
+            class="gray-btn add-btn"
+            onclick="loadPage('Services')">
+
+            ← رجوع
+
+        </button>
+
+    </div>
+
+
+    <div class="dashboard-section">
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>اسم العميل</label>
+                <input id="viewCustomer" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input id="viewPhone" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>المهندس</label>
+                <input id="viewEngineer" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>نوع المطبخ</label>
+                <input id="viewKitchen" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>نوع المشكلة</label>
+                <input id="viewProblemType" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>موعد الزيارة</label>
+                <input id="viewVisitDate" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>الحالة</label>
+                <input id="viewStatus" disabled>
+            </div>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>وصف المشكلة</label>
+
+            <textarea
+                id="viewProblem"
+                rows="5"
+                disabled></textarea>
+
+        </div>
+
+        <div style="display:flex;gap:15px;margin-top:30px">
+
+            <button
+                class="add-btn"
+                onclick="editService()">
+
+                ✏ تعديل
+
+            </button>
+
+            <button
+                class="gold-btn"
+                onclick="finishService()">
+
+                ✅ إنهاء الصيانة
+
+            </button>
+
+        </div>
+
+    </div>
+<script>
+
+google.script.run
+.withSuccessHandler(function(service){
+
+    if(!service) return;
+
+    document.getElementById("serviceNumber").innerHTML =
+        "رقم الصيانة : " + service.ticketNo;
+
+    document.getElementById("viewCustomer").value =
+        service.customerName;
+
+    document.getElementById("viewPhone").value =
+        service.customerPhone;
+
+    document.getElementById("viewEngineer").value =
+        service.engineer;
+
+    document.getElementById("viewKitchen").value =
+        service.deviceType;
+
+    document.getElementById("viewProblemType").value =
+        service.brand;
+
+    document.getElementById("viewVisitDate").value =
+        service.visitDate;
+
+    document.getElementById("viewStatus").value =
+        service.status;
+
+    document.getElementById("viewProblem").value =
+        service.problem;
+
+})
+.getServiceById("<?= serviceId ?>");
+
+</script>
+</div>
