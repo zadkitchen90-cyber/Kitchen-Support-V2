@@ -1,196 +1,158 @@
 <script>
 
 function handleLogin(e){
-
     if(e)e.preventDefault();
-
     const user=document.getElementById("username").value.trim();
-
     const pass=document.getElementById("password").value.trim();
-
     const btn=document.getElementById("submitBtn");
-
     const error=document.getElementById("errorMsg");
-
     btn.disabled=true;
-
     btn.innerHTML="جارى تسجيل الدخول...";
-
     error.style.display="none";
-
     google.script.run
-
     .withSuccessHandler(function(res){
-
         if(res.success){
-
             document.getElementById("loginScreen").style.display="none";
-
             document.getElementById("systemScreen").style.display="block";
-
             loadDashboard();
-
         }else{
-
             btn.disabled=false;
-
             btn.innerHTML="تسجيل الدخول";
-
             error.style.display="block";
-
             error.innerHTML=res.message;
-
         }
-
     })
-
     .withFailureHandler(function(err){
-
         btn.disabled=false;
-
         btn.innerHTML="تسجيل الدخول";
-
         error.style.display="block";
-
         error.innerHTML=err.message;
-
     })
-
     .login(user,pass);
-
 }
 
+// تحديث الترحيب حسب الوقت (صباحاً / مساءً)
+// تحديث الترحيب حسب الوقت بشكل دقيق طوال اليوم
+function updateGreeting() {
+    const hour = new Date().getHours();
+    let greetingElement = document.getElementById("greetingText");
+    if (!greetingElement) return;
 
-
+    // من الساعة 12 بالليل (0) وحتى الساعة 12 ظهراً (12) تعتبر صباح الخير
+    if (hour >= 0 && hour < 12) {
+        greetingElement.innerHTML = "صباح الخير";
+    } else {
+        greetingElement.innerHTML = "مساء الخير";
+    }
+}
 function loadDashboard(){
-
     updateDateTime();
-
+    updateGreeting();
     setInterval(updateDateTime,1000);
 
     google.script.run
-
     .withSuccessHandler(function(user){
-
-        if(user){
-
-            document.getElementById("userName").innerHTML=
-
-            user.name+" | "+user.role;
-
+        if(user && document.getElementById("userName")){
+            document.getElementById("userName").innerHTML = user.name+" | "+user.role;
         }
-
     })
-
     .getCurrentUser();
 
-
-
     google.script.run
-
     .withSuccessHandler(function(data){
-
-        document.getElementById("totalServices").innerHTML=data.totalServices;
-
-        document.getElementById("openServices").innerHTML=data.openServices;
-
-        document.getElementById("engineersCount").innerHTML=data.engineersCount;
-
-        if(document.getElementById("completedServices")){
-
-            document.getElementById("completedServices").innerHTML=data.completedServices||0;
-
-        }
-
+        if(!data) return;
+        if(document.getElementById("totalServices")) document.getElementById("totalServices").innerHTML = data.totalServices || 0;
+        if(document.getElementById("openServices")) document.getElementById("openServices").innerHTML = data.openServices || 0;
+        if(document.getElementById("engineersCount")) document.getElementById("engineersCount").innerHTML = data.engineersCount || 0;
+        if(document.getElementById("todayVisits")) document.getElementById("todayVisits").innerHTML = data.completedServices || 0;
     })
-
     .getDashboardData();
 
+    // جلب أحدث الصيانات لعرضها في جدول "آخر الصيانات" بالرئيسية
+    google.script.run
+    .withSuccessHandler(function(data){
+        const tbody = document.getElementById("recentServicesTable");
+        if(!tbody) return; 
+        
+        tbody.innerHTML = "";
+
+        if(!data || data.length === 0){
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px">لا توجد بيانات</td></tr>`;
+            return;
+        }
+
+        let recent = data.slice(-5).reverse();
+
+        recent.forEach(function(item){
+            tbody.innerHTML += `
+            <tr>
+                <td>${item.ticketNo || item.id || '-'}</td>
+                <td>${item.customerName || '-'}</td>
+                <td>${item.engineer || '-'}</td>
+                <td>${item.status || '-'}</td>
+                <td>${item.visitDate ? item.visitDate.substring(0, 10) : '-'}</td>
+            </tr>`;
+        });
+    })
+    .getServices();
 }
-
-
 
 function updateDateTime(){
-
     const now=new Date();
-
     const options={
-
         weekday:'long',
-
         year:'numeric',
-
         month:'long',
-
         day:'numeric',
-
         hour:'2-digit',
-
         minute:'2-digit',
-
         second:'2-digit'
-
     };
-
     if(document.getElementById("currentDateTime")){
-
         document.getElementById("currentDateTime").innerHTML=
-
         now.toLocaleString("ar-EG",options);
-
     }
-
 }
 
-
-
 function loadPage(pageName){
-
-    // لو صفحة إضافة عميل افتحها مباشرة
     google.script.run
     .withSuccessHandler(function(html){
-
         document.getElementById("mainContent").innerHTML = html;
 
-        if(pageName=="AddService"){
-            setTimeout(loadAddServiceLists,200);
+        // التحقق من الصفحة المفتوحة وتشغيل دوال البيانات الخاصة بها فوراً
+        if(pageName == "Dashboard"){
+            setTimeout(loadDashboard, 100);
         }
-
-        if(pageName=="Services"){
-            setTimeout(loadServices,200);
+        if(pageName == "AddService"){
+            setTimeout(loadAddServiceLists, 200);
         }
-
-        if(pageName=="Customers"){
-            setTimeout(loadCustomers,200);
+        if(pageName == "Services"){
+            setTimeout(loadServices, 200);
         }
-
+        if(pageName == "Customers"){
+            setTimeout(loadCustomers, 200);
+        }
     })
     .withFailureHandler(function(err){
         alert(err.message);
     })
     .loadPage(pageName);
-
 }
-
 function loadServices(){
-
     google.script.run
     .withSuccessHandler(function(data){
-
         const tbody = document.getElementById("servicesTable");
         if(!tbody) return;
 
         tbody.innerHTML="";
 
         if(data.length==0){
-
             tbody.innerHTML=`
             <tr>
                 <td colspan="8" style="text-align:center;padding:40px">
                     لا توجد بلاغات
                 </td>
             </tr>`;
-
             return;
         }
 
@@ -199,258 +161,156 @@ function loadServices(){
         let cancel=0;
 
         data.forEach(function(item,index){
-
             let badge="badge-open";
 
             if(item.status=="جارى التنفيذ"){
                 badge="badge-progress";
                 open++;
             }
-
             if(item.status=="جديد"){
                 badge="badge-open";
                 open++;
             }
-
             if(item.status=="مكتمل"){
                 badge="badge-done";
                 done++;
             }
-
             if(item.status=="ملغي"){
                 badge="badge-cancel";
                 cancel++;
             }
 
             tbody.innerHTML+=`
-
             <tr>
-
                 <td>${index+1}</td>
-
                 <td>${item.customerName}</td>
-
                 <td>${item.customerPhone}</td>
-
                 <td>${item.deviceType}</td>
-
                 <td>${item.engineer}</td>
-
-                <td>${item.visitDate}</td>
-
+                <td>${item.brand}</td>
                 <td>
                     <span class="badge ${badge}">
                         ${item.status}
                     </span>
                 </td>
-
                 <td>
-                    <button class="gold-btn">
-                        👁 عرض
-                    </button>
+                <button class="gold-btn" onclick="viewService('${item.id}')">
+                👁 عرض
+                </button> 
                 </td>
-
-            </tr>
-
-            `;
-
+            </tr>`;
         });
 
-        document.getElementById("totalServicesCount").innerHTML=data.length;
-        document.getElementById("openServicesCount").innerHTML=open;
-        document.getElementById("completedServicesCount").innerHTML=done;
-        document.getElementById("cancelledServicesCount").innerHTML=cancel;
+        if(document.getElementById("totalServicesCount")) document.getElementById("totalServicesCount").innerHTML=data.length;
+        if(document.getElementById("openServicesCount")) document.getElementById("openServicesCount").innerHTML=open;
+        if(document.getElementById("completedServicesCount")) document.getElementById("completedServicesCount").innerHTML=done;
+        if(document.getElementById("cancelledServicesCount")) document.getElementById("cancelledServicesCount").innerHTML=cancel;
 
     })
     .getServices();
-
 }
 
 function saveService(){
-
     const service={
-
         customerName:document.getElementById("customerName").value.trim(),
-
         customerPhone:document.getElementById("customerPhone").value.trim(),
-
         deviceType:document.getElementById("deviceType").value,
-
         brand:document.getElementById("brand").value,
-
         problem:document.getElementById("problem").value.trim(),
-
         engineer:document.getElementById("engineer").value,
-
         visitDate:document.getElementById("visitDate").value,
-
         status:document.getElementById("status").value
-
     };
 
     if(service.customerName==""){
-
         alert("اكتب اسم العميل");
-
         return;
-
     }
-
     if(service.customerPhone==""){
-
         alert("اكتب رقم الهاتف");
-
         return;
-
     }
-
     if(service.visitDate==""){
-
         alert("اختر تاريخ الزيارة");
-
         return;
-
     }
 
     google.script.run
-
     .withSuccessHandler(function(res){
-
         if(res.success){
-
             showToast(res.message);
-
             setTimeout(function(){
-
                 loadPage("Services");
-
             },1000);
-
         }else{
-
             alert(res.message);
-
         }
-
     })
-
     .withFailureHandler(function(err){
-
         alert(err.message);
-
     })
-
     .saveService(service);
-
 }
 
-
 function searchServices(){
-
     const input=document.getElementById("serviceSearch");
-
     if(!input) return;
-
     const filter=input.value.toLowerCase();
-
     const rows=document.querySelectorAll("#servicesTable tr");
 
     rows.forEach(function(row){
-
         if(row.innerText.toLowerCase().indexOf(filter)>-1){
-
             row.style.display="";
-
         }else{
-
             row.style.display="none";
-
         }
-
     });
-
 }
-
-
 
 function logoutUser(){
-
     if(confirm("هل تريد تسجيل الخروج؟")){
-
         location.reload();
-
     }
-
 }
-
-
 
 function showToast(message){
-
     let toast=document.getElementById("toast");
-
     if(!toast){
-
         toast=document.createElement("div");
-
         toast.id="toast";
-
         toast.className="toast";
-
         document.body.appendChild(toast);
-
     }
-
     toast.innerHTML=message;
-
     toast.style.display="block";
-
     setTimeout(function(){
-
         toast.style.display="none";
-
     },3000);
-
 }
+
 function loadAddServiceLists(){
-
     google.script.run.withSuccessHandler(function(list){
-
         fillSelect("engineer",list);
-
     }).getList("Engineer");
 
-
     google.script.run.withSuccessHandler(function(list){
-
         fillSelect("deviceType",list);
-
     }).getList("Kitchen");
 
-
     google.script.run.withSuccessHandler(function(list){
-
         fillSelect("brand",list);
-
     }).getList("Problem");
-
 }
 
 function fillSelect(id,data){
-
     const select=document.getElementById(id);
-
     if(!select) return;
-
     select.innerHTML='<option value="">اختر...</option>';
-
     data.forEach(function(item){
-
         select.innerHTML+=`<option value="${item}">${item}</option>`;
-
     });
-
 }
+
 function showAddService(){
     loadPage("AddService");
 }
@@ -458,38 +318,28 @@ function showAddService(){
 function showDashboard(){
     loadPage("Dashboard");
 }
-//=========================
+
+// =========================
 // العملاء
-//=========================
-
+// =========================
 function loadCustomers(){
-
     google.script.run
-
     .withSuccessHandler(function(data){
-
-        console.log("Customers:", data);
-
         const tbody = document.getElementById("customersTable");
-
         if(!tbody) return;
-
         tbody.innerHTML = "";
 
         if(!data || data.length == 0){
-
             tbody.innerHTML = `
             <tr>
                 <td colspan="6" style="text-align:center;padding:40px">
                     لا يوجد عملاء
                 </td>
             </tr>`;
-
             return;
         }
 
         data.forEach(function(item,index){
-
             tbody.innerHTML += `
             <tr>
                 <td>${index+1}</td>
@@ -497,69 +347,76 @@ function loadCustomers(){
                 <td>${item.phone}</td>
                 <td>${item.governorate}</td>
                 <td>${item.city}</td>
-                <td><button class="gold-btn">✏️ تعديل</button></td>
+                <td><button class="gold-btn" onclick="editCustomer('${item.id}')">✏️ تعديل</button></td>
             </tr>`;
         });
-
     })
-
     .withFailureHandler(function(err){
-
-        console.log(err);
-
         alert(err.message);
+    })
+    .getCustomers();
+}
+
+function editCustomer(customerId){
+    if(!customerId) {
+        alert("رقم العميل غير متاح");
+        return;
+    }
+    
+    // استدعاء دالة لتحميل بيانات العميل وملئها في الفورم
+    google.script.run
+    .withSuccessHandler(function(html){
+        document.getElementById("mainContent").innerHTML = html;
+        
+        // بعد تحميل الصفحة، جلب بيانات العميل وتعبئتها في الحقول
+        google.script.run.withSuccessHandler(function(customer){
+            if(customer){
+                if(document.getElementById("customerName")) document.getElementById("customerName").value = customer.name || '';
+                if(document.getElementById("customerPhone")) document.getElementById("customerPhone").value = customer.phone || '';
+                if(document.getElementById("customerPhone2")) document.getElementById("customerPhone2").value = customer.phone2 || '';
+                if(document.getElementById("customerGovernorate")) document.getElementById("customerGovernorate").value = customer.governorate || '';
+                if(document.getElementById("customerCity")) document.getElementById("customerCity").value = customer.city || '';
+                if(document.getElementById("customerAddress")) document.getElementById("customerAddress").value = customer.address || '';
+                if(document.getElementById("customerNotes")) document.getElementById("customerNotes").value = customer.notes || '';
+                
+                // تخزين الـ ID عشان نعرف إننا في حالة تعديل مش إضافة جديدة
+                window.editingCustomerId = customerId;
+            }
+        }).getCustomerById(customerId);
 
     })
-
-    .getCustomers();
-
+    .withFailureHandler(function(err){
+        alert(err.message);
+    })
+    .loadPage("AddCustomer"); // بنستخدم نفس تصميم صفحة الإضافة مؤقتاً
 }
-
-function searchCustomers(){
-
-    const input=document.getElementById("customerSearch");
-
-    if(!input) return;
-
-    const filter=input.value.toLowerCase();
-
-    const rows=document.querySelectorAll("#customersTable tr");
-
-    rows.forEach(function(row){
-
-        if(row.innerText.toLowerCase().indexOf(filter)>-1){
-
-            row.style.display="";
-
-        }else{
-
-            row.style.display="none";
-
-        }
-
-    });
-
+function viewService(serviceId) {
+    if(!serviceId) {
+        alert("رقم البلاغ غير متاح");
+        return;
+    }
+    google.script.run
+    .withSuccessHandler(function(html){
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .withFailureHandler(function(err){
+        alert("خطأ: " + err.message);
+    })
+    .loadPage("ServiceProfile", serviceId);
 }
-
-
 function showAddCustomer() {
     loadPage("AddCustomer");
 }
 
 function setActiveMenu(btn){
-
     document.querySelectorAll(".menu-btn").forEach(item=>{
         item.classList.remove("active");
     });
-
     btn.classList.add("active");
-
 }
 
 function saveNewCustomer(){
-
     let customer={
-
         name:document.getElementById("customerName").value,
         phone:document.getElementById("customerPhone").value,
         phone2:document.getElementById("customerPhone2").value,
@@ -567,31 +424,58 @@ function saveNewCustomer(){
         city:document.getElementById("customerCity").value,
         address:document.getElementById("customerAddress").value,
         notes:document.getElementById("customerNotes").value
-
     };
 
     if(customer.name==""){
-
         alert("اكتب اسم العميل");
-
         return;
-
     }
 
     google.script.run
     .withSuccessHandler(function(res){
-
         alert(res.message);
-
         loadPage("Customers");
-
     })
     .withFailureHandler(function(err){
-
         alert(err.message);
-
     })
     .saveCustomer(customer);
+}
 
+// دالة عرض تفاصيل البلاغ
+function viewService(serviceId){
+    if(!serviceId) {
+        alert("رقم البلاغ غير متاح");
+        return;
+    }
+    google.script.run
+    .withSuccessHandler(function(html){
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .withFailureHandler(function(err){
+        alert("خطأ في التحميل: " + err.message);
+    })
+    .loadServiceProfile(serviceId);
+}
+
+// دالة تعديل العميل
+function editCustomer(customerId){
+    if(!customerId) {
+        alert("رقم العميل غير متاح");
+        return;
+    }
+    // لو عندك دالة في الخلفية لتحميل ملف العميل نادها، وإلا افتح صفحة إضافة/تعديل العميل
+    if(typeof google.script.run.loadCustomerProfile === 'function') {
+        google.script.run
+        .withSuccessHandler(function(html){
+            document.getElementById("mainContent").innerHTML = html;
+        })
+        .withFailureHandler(function(err){
+            alert(err.message);
+        })
+        .loadCustomerProfile(customerId);
+    } else {
+        loadPage("AddCustomer");
+    }
 }
 </script>

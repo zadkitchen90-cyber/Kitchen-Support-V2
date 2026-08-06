@@ -15,7 +15,6 @@ function getCustomers() {
   let customers = [];
 
   for (let i = 1; i < data.length; i++) {
-
     customers.push({
       id: data[i][0],
       name: data[i][1],
@@ -25,9 +24,10 @@ function getCustomers() {
       city: data[i][5],
       address: data[i][6],
       notes: data[i][7],
-      createdAt: data[i][8]
+      
+      // التعديل هنا: تحويل التاريخ إلى نص
+      createdAt: data[i][8] ? String(data[i][8]) : "" 
     });
-
   }
 
   return customers;
@@ -75,7 +75,6 @@ function saveCustomer(customer) {
   }
 
 }
-
 
 // البحث عن عميل بالـ ID
 function getCustomerByID(id) {

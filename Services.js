@@ -3,7 +3,7 @@
  * Services Manager
  */
 
-//============================
+ //============================
 // جلب جميع البلاغات
 //============================
 function getServices() {
@@ -22,11 +22,11 @@ function getServices() {
   let customerMap = {};
   for (let i = 1; i < customers.length; i++) {
     customerMap[customers[i][0]] = {
-  name: customers[i][1],
-  phone: customers[i][2],
-  governorate: customers[i][4],
-  city: customers[i][5]
-};
+      name: customers[i][1],
+      phone: customers[i][2],
+      governorate: customers[i][4],
+      city: customers[i][5]
+    };
   }
 
   // EngineerID => Name
@@ -38,44 +38,56 @@ function getServices() {
   let result = [];
 
   for (let i = 1; i < services.length; i++) {
+    
+    // تخطي الصفوف الفارغة تماماً
+    if (!services[i][0]) continue;
+
+    // فحص بيانات العميل (سواء كود أو نص صريح)
+    let custKey = services[i][3];
+    let resolvedName = "";
+    let resolvedPhone = "";
+    let resolvedGov = "";
+    let resolvedCity = "";
+
+    if (customerMap[custKey]) {
+      resolvedName = customerMap[custKey].name || "";
+      resolvedPhone = customerMap[custKey].phone || "";
+      resolvedGov = customerMap[custKey].governorate || "";
+      resolvedCity = customerMap[custKey].city || "";
+    } else {
+      resolvedName = custKey ? String(custKey) : "";
+      resolvedPhone = "";
+    }
 
     result.push({
 
-      id: services[i][0],
+      id: services[i][0] ? String(services[i][0]) : "",
 
-      ticketNo: services[i][1],
+      ticketNo: services[i][1] ? String(services[i][1]) : "",
 
-      createDate: services[i][2],
+      createDate: services[i][2] ? String(services[i][2]) : "",
 
-      customerName: customerMap[services[i][3]]
-    ? customerMap[services[i][3]].name
-    : "",
+      customerName: resolvedName,
 
-customerPhone: customerMap[services[i][3]]
-    ? customerMap[services[i][3]].phone
-    : "",
+      customerPhone: resolvedPhone,
 
-governorate: customerMap[services[i][3]]
-    ? customerMap[services[i][3]].governorate
-    : "",
+      governorate: resolvedGov,
 
-city: customerMap[services[i][3]]
-    ? customerMap[services[i][3]].city
-    : "",
+      city: resolvedCity,
 
-      engineer: engineerMap[services[i][4]] || services[i][4],
+      engineer: engineerMap[services[i][4]] || (services[i][4] ? String(services[i][4]) : ""),
 
-      deviceType: services[i][5],
+      deviceType: services[i][5] ? String(services[i][5]) : "",
 
-      brand: services[i][6],
+      brand: services[i][6] ? String(services[i][6]) : "",
 
-      problem: services[i][7],
+      problem: services[i][7] ? String(services[i][7]) : "",
 
-      status: services[i][9],
+      status: services[i][9] ? String(services[i][9]) : "",
 
-      visitDate: services[i][10],
+      visitDate: services[i][10] ? String(services[i][10]) : "",
 
-      cost: services[i][12]
+      cost: services[i][12] ? String(services[i][12]) : ""
 
     });
 
@@ -84,6 +96,10 @@ city: customerMap[services[i][3]]
   return result;
 
 }
+
+
+
+
 
 //============================
 // حفظ بلاغ جديد
@@ -148,7 +164,7 @@ function saveService(service) {
       ticketNo,
       now,
 
-      customerID,          // بدلاً من اسم العميل
+      customerID,         // بدلاً من اسم العميل
 
       service.engineer,
 
