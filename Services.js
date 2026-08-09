@@ -219,3 +219,75 @@ function saveService(service) {
   }
 
 }
+//============================
+// جلب بلاغ واحد
+//============================
+function getServiceById(serviceId){
+
+  const services = getServices();
+
+  for(let i=0;i<services.length;i++){
+
+    if(String(services[i].id) == String(serviceId)){
+      return services[i];
+    }
+
+  }
+
+  return null;
+
+}
+//============================
+// تحديث بيانات بلاغ (تعديل)
+//============================
+function updateServiceData(data) {
+  try {
+    const db = getDatabase();
+    const serviceSheet = db.getSheetByName(CONFIG.SHEETS.SERVICES);
+    const serviceData = serviceSheet.getDataRange().getValues();
+
+    for (let i = 1; i < serviceData.length; i++) {
+      // البحث عن رقم البلاغ (ID)
+      if (String(serviceData[i][0]) === String(data.id)) {
+        const row = i + 1; // رقم الصف الفعلي في الشيت
+        
+        // 1. تحديث بيانات الصيانة في شيت الخدمات
+        // العمود 5: المهندس
+        serviceSheet.getRange(row, 5).setValue(data.engineer);
+        // العمود 6: المطبخ (deviceType)
+        serviceSheet.getRange(row, 6).setValue(data.kitchen);
+        // العمود 7: نوع الصيانة (brand)
+        serviceSheet.getRange(row, 7).setValue(data.serviceType);
+        // العمود 10: الحالة
+        serviceSheet.getRange(row, 10).setValue(data.status);
+
+        // 2. تحديث بيانات العميل (لو كان مربوط بكود العميل)
+        const custKey = serviceData[i][3];
+        if (String(custKey).startsWith("CUS")) {
+          const custSheet = db.getSheetByName(CONFIG.SHEETS.CUSTOMERS);
+          const custData = custSheet.getDataRange().getValues();
+          
+          for (let j = 1; j < custData.length; j++) {
+            if (String(custData[j][0]) === String(custKey)) {
+              const custRow = j + 1;
+              // تحديث الاسم والهاتف في شيت العملاء
+              custSheet.getRange(custRow, 2).setValue(data.customerName); // العمود B
+              custSheet.getRange(custRow, 3).setValue(data.phone);        // العمود C
+              break;
+            }
+          }
+        } else {
+          // لو العميل كان مسجل كنص عادي بدون كود، هنحدثه في شيت الصيانة مباشرة
+          serviceSheet.getRange(row, 4).setValue(data.customerName);
+        }
+
+        return { success: true, message: "تم حفظ التعديلات بنجاح" };
+      }
+    }
+
+    return { success: false, message: "لم يتم العثور على البلاغ المطلوب" };
+
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}

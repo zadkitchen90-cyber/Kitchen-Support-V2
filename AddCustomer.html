@@ -41,7 +41,29 @@
         <button class="add-btn" onclick="saveNewCustomer()">
             💾 حفظ العميل
         </button>
+<script>
 
+if (typeof currentId !== "undefined" && currentId) {
+
+    google.script.run
+    .withSuccessHandler(function(customer){
+
+        if(!customer) return;
+
+        document.getElementById("customerName").value = customer.name || "";
+        document.getElementById("customerPhone").value = customer.phone || "";
+        document.getElementById("customerPhone2").value = customer.phone2 || "";
+        document.getElementById("customerGovernorate").value = customer.governorate || "";
+        document.getElementById("customerCity").value = customer.city || "";
+        document.getElementById("customerAddress").value = customer.address || "";
+        document.getElementById("customerNotes").value = customer.notes || "";
+
+    })
+    .getCustomerById(currentId);
+
+}
+
+</script>
     </div>
 
 </div>

@@ -77,11 +77,11 @@ function saveCustomer(customer) {
 }
 
 // البحث عن عميل بالـ ID
-function getCustomerByID(id) {
+function getCustomerById(id) {
 
   const customers = getCustomers();
 
-  return customers.find(c => c.id == id);
+  return customers.find(c => String(c.id) == String(id));
 
 }
 // البحث عن العميل برقم الهاتف

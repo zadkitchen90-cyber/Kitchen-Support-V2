@@ -93,3 +93,12 @@ function getCustomerById(customerId) {
   }
   return null;
 }
+function loadServiceProfile(serviceId){
+
+  const template = HtmlService.createTemplateFromFile("ServiceProfile");
+
+  template.currentId = serviceId;
+
+  return template.evaluate().getContent();
+
+}

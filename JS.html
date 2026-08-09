@@ -31,20 +31,19 @@ function handleLogin(e){
     .login(user,pass);
 }
 
-// تحديث الترحيب حسب الوقت (صباحاً / مساءً)
 // تحديث الترحيب حسب الوقت بشكل دقيق طوال اليوم
 function updateGreeting() {
     const hour = new Date().getHours();
     let greetingElement = document.getElementById("greetingText");
     if (!greetingElement) return;
 
-    // من الساعة 12 بالليل (0) وحتى الساعة 12 ظهراً (12) تعتبر صباح الخير
     if (hour >= 0 && hour < 12) {
         greetingElement.innerHTML = "صباح الخير";
     } else {
         greetingElement.innerHTML = "مساء الخير";
     }
 }
+
 function loadDashboard(){
     updateDateTime();
     updateGreeting();
@@ -68,7 +67,7 @@ function loadDashboard(){
     })
     .getDashboardData();
 
-    // جلب أحدث الصيانات لعرضها في جدول "آخر الصيانات" بالرئيسية
+    // جلب أحدث الصيانات לעرضها في جدول "آخر الصيانات" بالرئيسية
     google.script.run
     .withSuccessHandler(function(data){
         const tbody = document.getElementById("recentServicesTable");
@@ -138,6 +137,7 @@ function loadPage(pageName){
     })
     .loadPage(pageName);
 }
+
 function loadServices(){
     google.script.run
     .withSuccessHandler(function(data){
@@ -180,6 +180,7 @@ function loadServices(){
                 cancel++;
             }
 
+            // تمت إضافة زر التعديل لفتح النافذة المنبثقة بجوار زر العرض
             tbody.innerHTML+=`
             <tr>
                 <td>${index+1}</td>
@@ -193,10 +194,9 @@ function loadServices(){
                         ${item.status}
                     </span>
                 </td>
-                <td>
-                <button class="gold-btn" onclick="viewService('${item.id}')">
-                👁 عرض
-                </button> 
+                <td style="display:flex; gap:5px; justify-content:center;">
+                    <button class="gold-btn" style="background:#2563eb; color:white; border:none; padding:5px 10px; border-radius:5px;" onclick="openEditModal('${item.id}', '${item.customerName}', '${item.customerPhone}', '${item.deviceType}', '${item.engineer}', '${item.brand}', '${item.status}')">✏️ تعديل</button>
+                    <button class="gold-btn" onclick="viewService('${item.id}')">👁 عرض</button> 
                 </td>
             </tr>`;
         });
@@ -357,53 +357,6 @@ function loadCustomers(){
     .getCustomers();
 }
 
-function editCustomer(customerId){
-    if(!customerId) {
-        alert("رقم العميل غير متاح");
-        return;
-    }
-    
-    // استدعاء دالة لتحميل بيانات العميل وملئها في الفورم
-    google.script.run
-    .withSuccessHandler(function(html){
-        document.getElementById("mainContent").innerHTML = html;
-        
-        // بعد تحميل الصفحة، جلب بيانات العميل وتعبئتها في الحقول
-        google.script.run.withSuccessHandler(function(customer){
-            if(customer){
-                if(document.getElementById("customerName")) document.getElementById("customerName").value = customer.name || '';
-                if(document.getElementById("customerPhone")) document.getElementById("customerPhone").value = customer.phone || '';
-                if(document.getElementById("customerPhone2")) document.getElementById("customerPhone2").value = customer.phone2 || '';
-                if(document.getElementById("customerGovernorate")) document.getElementById("customerGovernorate").value = customer.governorate || '';
-                if(document.getElementById("customerCity")) document.getElementById("customerCity").value = customer.city || '';
-                if(document.getElementById("customerAddress")) document.getElementById("customerAddress").value = customer.address || '';
-                if(document.getElementById("customerNotes")) document.getElementById("customerNotes").value = customer.notes || '';
-                
-                // تخزين الـ ID عشان نعرف إننا في حالة تعديل مش إضافة جديدة
-                window.editingCustomerId = customerId;
-            }
-        }).getCustomerById(customerId);
-
-    })
-    .withFailureHandler(function(err){
-        alert(err.message);
-    })
-    .loadPage("AddCustomer"); // بنستخدم نفس تصميم صفحة الإضافة مؤقتاً
-}
-function viewService(serviceId) {
-    if(!serviceId) {
-        alert("رقم البلاغ غير متاح");
-        return;
-    }
-    google.script.run
-    .withSuccessHandler(function(html){
-        document.getElementById("mainContent").innerHTML = html;
-    })
-    .withFailureHandler(function(err){
-        alert("خطأ: " + err.message);
-    })
-    .loadPage("ServiceProfile", serviceId);
-}
 function showAddCustomer() {
     loadPage("AddCustomer");
 }
@@ -442,40 +395,125 @@ function saveNewCustomer(){
     .saveCustomer(customer);
 }
 
-// دالة عرض تفاصيل البلاغ
-function viewService(serviceId){
-    if(!serviceId) {
-        alert("رقم البلاغ غير متاح");
-        return;
-    }
-    google.script.run
-    .withSuccessHandler(function(html){
-        document.getElementById("mainContent").innerHTML = html;
-    })
-    .withFailureHandler(function(err){
-        alert("خطأ في التحميل: " + err.message);
-    })
-    .loadServiceProfile(serviceId);
-}
-
-// دالة تعديل العميل
+// دالة تعديل العميل (تم إصلاحها ودمج الكود الطائر بداخلها)
 function editCustomer(customerId){
     if(!customerId) {
         alert("رقم العميل غير متاح");
         return;
     }
-    // لو عندك دالة في الخلفية لتحميل ملف العميل نادها، وإلا افتح صفحة إضافة/تعديل العميل
-    if(typeof google.script.run.loadCustomerProfile === 'function') {
-        google.script.run
-        .withSuccessHandler(function(html){
-            document.getElementById("mainContent").innerHTML = html;
+
+    // استدعاء صفحة العميل، ثم تعبئة بياناته
+    google.script.run
+    .withSuccessHandler(function(html){
+        document.getElementById("mainContent").innerHTML = html;
+        
+        // بعد تحميل الصفحة، جلب بيانات العميل وتعبئتها في الحقول
+        google.script.run.withSuccessHandler(function(customer){
+            if(customer){
+                if(document.getElementById("customerName")) document.getElementById("customerName").value = customer.name || '';
+                if(document.getElementById("customerPhone")) document.getElementById("customerPhone").value = customer.phone || '';
+                if(document.getElementById("customerPhone2")) document.getElementById("customerPhone2").value = customer.phone2 || '';
+                if(document.getElementById("customerGovernorate")) document.getElementById("customerGovernorate").value = customer.governorate || '';
+                if(document.getElementById("customerCity")) document.getElementById("customerCity").value = customer.city || '';
+                if(document.getElementById("customerAddress")) document.getElementById("customerAddress").value = customer.address || '';
+                if(document.getElementById("customerNotes")) document.getElementById("customerNotes").value = customer.notes || '';
+                
+                // تخزين الـ ID عشان نعرف إننا في حالة تعديل مش إضافة جديدة
+                window.editingCustomerId = customerId;
+            }
+        }).getCustomerById(customerId);
+
+    })
+    .withFailureHandler(function(err){
+        alert(err.message);
+    })
+    .loadPage("AddCustomer"); 
+}
+// ==========================================
+// 1. حل مشكلة زرار التعديل (نقل الدوال هنا)
+// ==========================================
+function openEditModal(id, customer, phone, kitchen, engineer, type, status) {
+    document.getElementById('editRowId').value = id || '';
+    document.getElementById('editCustomerName').value = customer || '';
+    document.getElementById('editPhone').value = phone || '';
+    document.getElementById('editKitchen').value = kitchen || '';
+    document.getElementById('editEngineer').value = engineer || '';
+    document.getElementById('editServiceType').value = type || '';
+    document.getElementById('editStatus').value = status || 'جديد';
+    
+    document.getElementById('editServiceModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editServiceModal').style.display = 'none';
+}
+
+function handleEditSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveEditBtn');
+    btn.innerText = "جاري الحفظ...";
+    btn.disabled = true;
+
+    const data = {
+        id: document.getElementById('editRowId').value,
+        customerName: document.getElementById('editCustomerName').value,
+        phone: document.getElementById('editPhone').value,
+        kitchen: document.getElementById('editKitchen').value,
+        engineer: document.getElementById('editEngineer').value,
+        serviceType: document.getElementById('editServiceType').value,
+        status: document.getElementById('editStatus').value
+    };
+
+    google.script.run
+        .withSuccessHandler(function(response) {
+            closeEditModal();
+            btn.innerText = "💾 حفظ التعديلات";
+            btn.disabled = false;
+            loadServices(); // تحديث الجدول فوراً ليظهر التعديل
         })
-        .withFailureHandler(function(err){
-            alert(err.message);
+        .withFailureHandler(function(err) {
+            alert("حدث خطأ أثناء الحفظ: " + err.message);
+            btn.innerText = "💾 حفظ التعديلات";
+            btn.disabled = false;
         })
-        .loadCustomerProfile(customerId);
-    } else {
-        loadPage("AddCustomer");
+        .updateServiceData(data);
+}
+
+// ==========================================
+// 2. حل مشكلة صفحة العرض الفاضية
+// ==========================================
+function viewService(serviceId) {
+    if(!serviceId) {
+        alert("رقم البلاغ غير متاح");
+        return;
     }
+    
+    // أولاً: تحميل هيكل صفحة العرض
+    google.script.run
+    .withSuccessHandler(function(html){
+        document.getElementById("mainContent").innerHTML = html;
+        
+        // ثانياً: جلب بيانات البلاغ من السيرفر وتعبئتها في الخانات
+        google.script.run
+        .withSuccessHandler(function(service){
+            if(service){
+                // ملاحظة: تأكد إن الـ IDs دي هي نفس اللي مكتوبة في ملف العرض عندك
+                if(document.getElementById("viewTicketNo")) document.getElementById("viewTicketNo").innerText = service.ticketNo || '';
+                if(document.getElementById("viewCustomerName")) document.getElementById("viewCustomerName").value = service.customerName || '';
+                if(document.getElementById("viewCustomerPhone")) document.getElementById("viewCustomerPhone").value = service.customerPhone || '';
+                if(document.getElementById("viewDeviceType")) document.getElementById("viewDeviceType").value = service.deviceType || '';
+                if(document.getElementById("viewBrand")) document.getElementById("viewBrand").value = service.brand || '';
+                if(document.getElementById("viewProblem")) document.getElementById("viewProblem").value = service.problem || '';
+                if(document.getElementById("viewEngineer")) document.getElementById("viewEngineer").value = service.engineer || '';
+                if(document.getElementById("viewStatus")) document.getElementById("viewStatus").value = service.status || '';
+            }
+        })
+        .getServiceById(serviceId);
+
+    })
+    .withFailureHandler(function(err){
+        alert("خطأ: " + err.message);
+    })
+    .loadPage("ServiceProfile"); // غير الاسم لو ملف العرض عندك اسمه مختلف
 }
 </script>

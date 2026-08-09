@@ -69,10 +69,9 @@
             <option value="عادية">🟢 عادية</option>
         </select>
 
-        <button class="refresh-btn" onclick="loadServices()">
-            🔄 تحديث
-        </button>
-
+         <button class="filter-btn refresh-btn" onclick="loadServices()">
+          🔄 تحديث
+          </button>
     </div>
 
 </div>
@@ -119,8 +118,137 @@
 
 </div>
 
-<script>
+<!-- ========================================== -->
+<!-- بداية الإضافة: نافذة التعديل المنبثقة (Popup) -->
+<!-- ========================================== -->
 
+<style>
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
+        backdrop-filter: blur(3px);
+    }
+    .modal-content {
+        background: #fff; padding: 25px; border-radius: 12px; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .modal-header h3 { margin: 0; color: #1e293b; font-size: 18px; }
+    .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #ef4444; transition: 0.3s; }
+    .close-btn:hover { color: #b91c1c; }
+    .modal-form-group { margin-bottom: 15px; text-align: right; }
+    .modal-form-group label { display: block; font-weight: 600; color: #475569; margin-bottom: 6px; font-size: 13px; }
+    .modal-form-group input, .modal-form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; transition: 0.3s; }
+    .modal-form-group input:focus, .modal-form-group select:focus { border-color: #2563eb; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
+    .btn-save { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-save:hover { background: #1d4ed8; }
+    .btn-cancel { background: #94a3b8; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-cancel:hover { background: #64748b; }
+</style>
+
+<div id="editServiceModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>✏️ تعديل بيانات الصيانة</h3>
+            <button class="close-btn" onclick="closeEditModal()">✖</button>
+        </div>
+        <form id="editServiceForm" onsubmit="handleEditSubmit(event)">
+            <input type="hidden" id="editRowId"> 
+            
+            <div class="modal-form-group">
+                <label>اسم العميل</label>
+                <input type="text" id="editCustomerName" required>
+            </div>
+            <div class="modal-form-group">
+                <label>الهاتف</label>
+                <input type="text" id="editPhone" required>
+            </div>
+            <div class="modal-form-group">
+                <label>المطبخ</label>
+                <input type="text" id="editKitchen" required>
+            </div>
+            <div class="modal-form-group">
+                <label>المهندس</label>
+                <input type="text" id="editEngineer">
+            </div>
+            <div class="modal-form-group">
+                <label>نوع الصيانة</label>
+                <input type="text" id="editServiceType" required>
+            </div>
+            <div class="modal-form-group">
+                <label>الحالة</label>
+                <select id="editStatus">
+                    <option value="جديد">جديد</option>
+                    <option value="جارى التنفيذ">جاري التنفيذ</option>
+                    <option value="مكتمل">مكتمل</option>
+                    <option value="ملغي">ملغي</option>
+                </select>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="submit" class="btn-save" id="saveEditBtn">💾 حفظ التعديلات</button>
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// الاستدعاء الأصلي الخاص بك
 loadServices();
 
+// ==========================================
+// دوال الجافاسكريبت للتحكم في النافذة المنبثقة
+// ==========================================
+
+// 1. فتح النافذة المنبثقة وتعبئة البيانات بداخلها
+function openEditModal(id, customer, phone, kitchen, engineer, type, status) {
+    document.getElementById('editRowId').value = id || '';
+    document.getElementById('editCustomerName').value = customer || '';
+    document.getElementById('editPhone').value = phone || '';
+    document.getElementById('editKitchen').value = kitchen || '';
+    document.getElementById('editEngineer').value = engineer || '';
+    document.getElementById('editServiceType').value = type || '';
+    document.getElementById('editStatus').value = status || 'جديد';
+    
+    document.getElementById('editServiceModal').style.display = 'flex';
+}
+
+// 2. إغلاق النافذة المنبثقة
+function closeEditModal() {
+    document.getElementById('editServiceModal').style.display = 'none';
+}
+
+// 3. إرسال البيانات للسيرفر بعد التعديل
+function handleEditSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveEditBtn');
+    btn.innerText = "جاري الحفظ...";
+    btn.disabled = true;
+
+    const data = {
+        id: document.getElementById('editRowId').value,
+        customerName: document.getElementById('editCustomerName').value,
+        phone: document.getElementById('editPhone').value,
+        kitchen: document.getElementById('editKitchen').value,
+        engineer: document.getElementById('editEngineer').value,
+        serviceType: document.getElementById('editServiceType').value,
+        status: document.getElementById('editStatus').value
+    };
+
+    google.script.run
+        .withSuccessHandler(function(response) {
+            closeEditModal();
+            btn.innerText = "💾 حفظ التعديلات";
+            btn.disabled = false;
+            loadServices(); // تحديث الجدول فوراً ليظهر التعديل
+        })
+        .withFailureHandler(function(err) {
+            alert("حدث خطأ أثناء الحفظ: " + err.message);
+            btn.innerText = "💾 حفظ التعديلات";
+            btn.disabled = false;
+        })
+        .updateServiceData(data); // دالة الحفظ في السيرفر
+}
 </script>
